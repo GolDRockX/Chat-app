@@ -1,17 +1,18 @@
 import { useEffect, useState, useRef } from 'react';
+import { BrowserRouter, Routes, Route, useParams } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import './App.css';
 
 const socket = io('https://chat-app-backend.bonto.run');
 
-function App() {
+function ChatApp({ directRoom }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [username, setUsername] = useState('');
   const [nameInput, setNameInput] = useState('');
   const [joined, setJoined] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState([]);
-  const [room, setRoom] = useState('general');
+  const [room, setRoom] = useState(directRoom || 'general');
   const [typingUsers, setTypingUsers] = useState([]);
   const messagesEndRef = useRef(null);
 
@@ -61,18 +62,20 @@ function App() {
   if (!joined) {
     return (
       <div className="join-screen">
-        <h2>Join Live Chat</h2>
+        <h2>{directRoom ? `Direct Chat: ${directRoom}` : 'Join Live Chat'}</h2>
         <input
           value={nameInput}
           onChange={(e) => setNameInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleJoin()}
           placeholder="Your name..."
         />
-        <select value={room} onChange={(e) => setRoom(e.target.value)}>
-          <option value="general">General</option>
-          <option value="random">Random</option>
-          <option value="tech">Tech Talk</option>
-        </select>
+        {!directRoom && (
+          <select value={room} onChange={(e) => setRoom(e.target.value)}>
+            <option value="general">General</option>
+            <option value="random">Random</option>
+            <option value="tech">Tech Talk</option>
+          </select>
+        )}
         <button onClick={handleJoin}>Join Chat</button>
       </div>
     );
@@ -123,6 +126,22 @@ function App() {
         <button onClick={sendMessage}>Send</button>
       </div>
     </div>
+  );
+}
+
+function DirectChatWrapper() {
+  const { roomId } = useParams();
+  return <ChatApp directRoom={roomId} />;
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<ChatApp />} />
+        <Route path="/:roomId" element={<DirectChatWrapper />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
