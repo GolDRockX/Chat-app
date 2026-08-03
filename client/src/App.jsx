@@ -53,14 +53,6 @@ function ChatApp({ directRoom }) {
     setJoined(true);
   };
 
-  const sendMessage = () => {
-    if (input.trim() === '') return;
-    const data = { room, sender: username, text: input, timestamp: new Date() };
-    socket.emit('send_message', data);
-    socket.emit('typing', { room, username, isTyping: false });
-    setInput('');
-  };
-
   const sendMessage = async () => {
     if (input.trim() === '' && !selectedFile) return;
 
