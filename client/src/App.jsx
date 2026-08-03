@@ -15,6 +15,8 @@ function ChatApp({ directRoom }) {
   const [room, setRoom] = useState(directRoom || 'general');
   const [typingUsers, setTypingUsers] = useState([]);
   const messagesEndRef = useRef(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (!joined) return;
@@ -59,6 +61,42 @@ function ChatApp({ directRoom }) {
     setInput('');
   };
 
+  const sendMessage = async () => {
+    if (input.trim() === '' && !selectedFile) return;
+
+    let fileData = {};
+
+    if (selectedFile) {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      const res = await fetch('https://chat-app-backend.bonto.run/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const result = await res.json();
+      fileData = {
+        fileUrl: `https://chat-app-backend.bonto.run${result.fileUrl}`,
+        fileType: result.fileType,
+        fileName: result.fileName
+      };
+    }
+
+    const data = {
+      room,
+      sender: username,
+      text: input,
+      timestamp: new Date(),
+      ...fileData
+    };
+
+    socket.emit('send_message', data);
+    socket.emit('typing', { room, username, isTyping: false });
+    setInput('');
+    setSelectedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   if (!joined) {
     return (
       <div className="join-screen">
@@ -97,6 +135,22 @@ function ChatApp({ directRoom }) {
         {messages.map((msg, i) => (
           <div key={i} className={`message-bubble ${msg.sender === username ? 'own' : 'other'}`}>
             {msg.sender !== username && <div className="message-sender">{msg.sender}</div>}
+
+            {msg.fileUrl && msg.fileType === 'image' && (
+              <img src={msg.fileUrl} alt={msg.fileName} style={{ maxWidth: '100%', borderRadius: 8, marginBottom: 4 }} />
+            )}
+            {msg.fileUrl && msg.fileType === 'video' && (
+              <video src={msg.fileUrl} controls style={{ maxWidth: '100%', borderRadius: 8, marginBottom: 4 }} />
+            )}
+            {msg.fileUrl && msg.fileType === 'audio' && (
+              <audio src={msg.fileUrl} controls style={{ marginBottom: 4 }} />
+            )}
+            {msg.fileUrl && msg.fileType === 'file' && (
+              <a href={msg.fileUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'block', marginBottom: 4 }}>
+                📄 {msg.fileName}
+              </a>
+            )}
+
             {msg.text}
           </div>
         ))}
@@ -110,18 +164,31 @@ function ChatApp({ directRoom }) {
 
       <div className="input-bar">
         <input
+          type="file"
+          ref={fileInputRef}
+          style={{ display: 'none' }}
+          onChange={(e) => setSelectedFile(e.target.files[0])}
+          accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.zip"
+        />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current.click()}
+          style={{ background: '#888', padding: '10px 14px' }}
+        >
+          📎
+        </button>
+        <input
           value={input}
           onChange={(e) => {
             setInput(e.target.value);
             socket.emit('typing', { room, username, isTyping: true });
-
             clearTimeout(window.typingTimeout);
             window.typingTimeout = setTimeout(() => {
               socket.emit('typing', { room, username, isTyping: false });
             }, 1500);
           }}
           onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-          placeholder="Type a message..."
+          placeholder={selectedFile ? selectedFile.name : "Type a message..."}
         />
         <button onClick={sendMessage}>Send</button>
       </div>
