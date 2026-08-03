@@ -115,7 +115,7 @@ body {
 
 .message-bubble.own {
   align-self: flex-end;
-  background: #4f46e5;
+  background: #f0f0f0;
   color: white;
   border-bottom-right-radius: 4px;
 }
