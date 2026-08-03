@@ -17,6 +17,7 @@ function ChatApp({ directRoom }) {
   const messagesEndRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
+  const [previewImage, setPreviewImage] = useState(null);
 
   useEffect(() => {
     if (!joined) return;
@@ -129,7 +130,12 @@ function ChatApp({ directRoom }) {
             {msg.sender !== username && <div className="message-sender">{msg.sender}</div>}
 
             {msg.fileUrl && msg.fileType === 'image' && (
-              <img src={msg.fileUrl} alt={msg.fileName} style={{ maxWidth: '100%', borderRadius: 8, marginBottom: 4 }} />
+              <img
+                src={msg.fileUrl}
+                alt={msg.fileName}
+                style={{ maxWidth: '100%', borderRadius: 8, marginBottom: 4, cursor: 'pointer' }}
+                onClick={() => setPreviewImage(msg.fileUrl)}
+              />
             )}
             {msg.fileUrl && msg.fileType === 'video' && (
               <video src={msg.fileUrl} controls style={{ maxWidth: '100%', borderRadius: 8, marginBottom: 4 }} />
@@ -167,7 +173,7 @@ function ChatApp({ directRoom }) {
           onClick={() => fileInputRef.current.click()}
           style={{ background: '#888', padding: '10px 14px' }}
         >
-          📎
+          📄
         </button>
         <input
           value={input}
@@ -184,6 +190,42 @@ function ChatApp({ directRoom }) {
         />
         <button onClick={sendMessage}>Send</button>
       </div>
+
+      {previewImage && (
+        <div
+          onClick={() => setPreviewImage(null)}
+          style={{
+            position: 'fixed',
+            top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0,0,0,0.85)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            cursor: 'zoom-out'
+          }}
+        >
+          <img
+            src={previewImage}
+            alt="Preview"
+            style={{ maxWidth: '90%', maxHeight: '90%', borderRadius: 8, boxShadow: '0 4px 30px rgba(0,0,0,0.5)' }}
+          />
+          <button
+            onClick={(e) => { e.stopPropagation(); setPreviewImage(null); }}
+            style={{
+              position: 'absolute',
+              top: 20, right: 30,
+              background: 'transparent',
+              border: 'none',
+              color: 'white',
+              fontSize: 32,
+              cursor: 'pointer'
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
     </div>
   );
 }
