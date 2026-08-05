@@ -14,7 +14,7 @@ export default defineConfig({
       entry: 'src/widget-entry.jsx',
       name: 'ChatWidget',
       formats: ['iife'],
-      fileName: () => 'widget.js'
+      fileName: () => 'widget'
     }
   }
 });
