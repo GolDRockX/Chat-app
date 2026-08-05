@@ -1,6 +1,9 @@
 import { createRoot } from 'react-dom/client';
 import Widget from './Widget.jsx';
 
+console.log('Widget script loaded');
+
+
 const currentScript = document.currentScript ||
   Array.from(document.getElementsByTagName('script')).find(s => s.src.includes('widget.js'));
 
