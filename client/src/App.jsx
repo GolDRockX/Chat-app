@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { BrowserRouter, Routes, Route, useParams } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import './App.css';
+import Dashboard from './Dashboard.jsx';
 
 const socket = io('https://chat-app-backend.bonto.run');
 
@@ -89,6 +90,12 @@ function ChatApp({ directRoom }) {
     setSelectedFile(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
+  <Routes>
+    <Route path="/" element={<ChatApp />} />
+    <Route path="/dashboard" element={<Dashboard />} />
+    <Route path="/:roomId" element={<DirectChatWrapper />} />
+  </Routes>
 
   if (!joined) {
     return (

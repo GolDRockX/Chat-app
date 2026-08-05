@@ -32,7 +32,17 @@ const styles = `
 .cw-input-bar button { padding: 8px 14px; background: #4f46e5; color: white; border: none; border-radius: 16px; cursor: pointer; font-size: 13px; }
 `;
 
-export default function Widget({ room = 'widget-support' }) {
+function getVisitorId() {
+  let id = localStorage.getItem('cw-visitor-id');
+  if (!id) {
+    id = Math.random().toString(36).substring(2, 10);
+    localStorage.setItem('cw-visitor-id', id);
+  }
+  return id;
+}
+
+export default function Widget() {
+  const visitorRoom = `visitor-${getVisitorId()}`;
   const [open, setOpen] = useState(false);
   const [joined, setJoined] = useState(false);
   const [nameInput, setNameInput] = useState('');
