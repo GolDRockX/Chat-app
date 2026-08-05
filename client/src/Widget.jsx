@@ -21,14 +21,15 @@ const styles = `
 }
 .cw-header { background: #4f46e5; color: white; padding: 14px; font-size: 15px; font-weight: 600; }
 .cw-join { padding: 20px; text-align: center; }
-.cw-join input { width: 100%; padding: 10px; margin-top: 10px; border: 1px solid #ddd; border-radius: 6px; }
+.cw-join input { width: 100%; padding: 10px; margin-top: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
 .cw-join button { width: 100%; padding: 10px; margin-top: 10px; background: #4f46e5; color: white; border: none; border-radius: 6px; cursor: pointer; }
 .cw-messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
 .cw-msg { max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 13px; }
 .cw-msg.own { align-self: flex-end; background: #4f46e5; color: white; }
 .cw-msg.other { align-self: flex-start; background: #f0f0f0; color: #1a1a1a; }
+.cw-sender { font-size: 11px; font-weight: 600; margin-bottom: 2px; opacity: 0.7; }
 .cw-input-bar { display: flex; padding: 10px; border-top: 1px solid #eee; gap: 6px; }
-.cw-input-bar input { flex: 1; padding: 8px 10px; border: 1px solid #ddd; border-radius: 16px; font-size: 13px; }
+.cw-input-bar input { flex: 1; padding: 8px 10px; border: 1px solid #ddd; border-radius: 16px; font-size: 13px; outline: none; }
 .cw-input-bar button { padding: 8px 14px; background: #4f46e5; color: white; border: none; border-radius: 16px; cursor: pointer; font-size: 13px; }
 `;
 
@@ -61,9 +62,13 @@ export default function Widget() {
 
   useEffect(() => {
     if (!joined) return;
-    socket.emit('join_room', { room, username });
+    socket.emit('join_room', { room: visitorRoom, username });
     socket.on('chat_history', (history) => setMessages(history));
-    socket.on('receive_message', (data) => setMessages(prev => [...prev, data]));
+    socket.on('receive_message', (data) => {
+      if (data.room === visitorRoom) {
+        setMessages(prev => [...prev, data]);
+      }
+    });
     return () => {
       socket.off('chat_history');
       socket.off('receive_message');
@@ -82,8 +87,12 @@ export default function Widget() {
 
   const sendMessage = () => {
     if (input.trim() === '') return;
-    const data = { room, sender: username, text: input, timestamp: new Date() };
-    socket.emit('send_message', data);
+    socket.emit('send_message', {
+      room: visitorRoom,
+      sender: username,
+      text: input,
+      timestamp: new Date()
+    });
     setInput('');
   };
 
@@ -113,6 +122,9 @@ export default function Widget() {
               <div className="cw-messages">
                 {messages.map((msg, i) => (
                   <div key={i} className={`cw-msg ${msg.sender === username ? 'own' : 'other'}`}>
+                    {msg.sender !== username && (
+                      <div className="cw-sender">{msg.sender}</div>
+                    )}
                     {msg.text}
                   </div>
                 ))}
