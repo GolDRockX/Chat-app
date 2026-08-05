@@ -91,11 +91,7 @@ function ChatApp({ directRoom }) {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  <Routes>
-    <Route path="/" element={<ChatApp />} />
-    <Route path="/dashboard" element={<Dashboard />} />
-    <Route path="/:roomId" element={<DirectChatWrapper />} />
-  </Routes>
+
 
   if (!joined) {
     return (
@@ -247,6 +243,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<ChatApp />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/:roomId" element={<DirectChatWrapper />} />
       </Routes>
     </BrowserRouter>
